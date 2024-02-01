@@ -2,7 +2,7 @@
 # Author: Oscar Boochever
 # Date: Feb 5, 2024
 
-# Load necessary libraries
+# Load necessary libraries ####
 library(haven)
 library(broom)
 library(lfe)
@@ -11,16 +11,16 @@ library(forcats)
 library(glue)
 library(ggplot2)
 
-# Read data
+# Read data ####
 data <- read_dta('ReplicationDataGhanaJDE.dta')
 
-# 17. Descriptive statistics table 
+# 17. Descriptive statistics table ####
 
-# Filter data for Wave 2
+## Filter data for Wave 2 ====
 data_wave2 <- data %>%
   filter(wave2 == 1)
 
-# Calculate descriptive statistics
+## Calculate descriptive statistics ====
 descriptive_stats <- data_wave2 %>%
   summarise(
     'Number of Households' = n(),
@@ -35,6 +35,3 @@ descriptive_stats <- descriptive_stats %>%
   mutate_if(is.numeric, round, digits = 2)
 
 descriptive_stats <- cbind(Country = "Ghana", descriptive_stats)
-
-# Print the table
-print(descriptive_stats)
