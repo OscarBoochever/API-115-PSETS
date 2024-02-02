@@ -44,3 +44,8 @@ control_data <- data_wave2$realfinalprofit[data_wave2$assigntreat == 0]
 t_test_result <- t.test(x = treatment_data, y = control_data, alternative = "two.sided")
 print(t_test_result)
 
+
+# 18. Reproduce Estimates ####
+felm(realfinalprofit ~ ) 
+
+
