@@ -35,3 +35,12 @@ descriptive_stats <- descriptive_stats %>%
   mutate_if(is.numeric, round, digits = 2)
 
 descriptive_stats <- cbind(Country = "Ghana", descriptive_stats)
+
+
+## Perform test for statistical significance ====
+treatment_data <- data_wave2$realfinalprofit[data_wave2$assigntreat == 1]
+control_data <- data_wave2$realfinalprofit[data_wave2$assigntreat == 0]
+
+t_test_result <- t.test(x = treatment_data, y = control_data, alternative = "two.sided")
+print(t_test_result)
+
