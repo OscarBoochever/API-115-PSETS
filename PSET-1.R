@@ -24,7 +24,7 @@ data_wave2 <- data %>%
 descriptive_stats <- data_wave2 %>%
   summarise(
     'Number of Households' = n(),
-    'Number of Units of Randomization' = n(),
+    'Number of Units of Randomization' = n_distinct(groupnum),
     'Real Final Profit Sample Mean (Treatment)' = mean(realfinalprofit[assigntreat == 1], na.rm = TRUE),
     'Real Final Profit Sample SD (Treatment)' = sd(realfinalprofit[assigntreat == 1], na.rm = TRUE),
     'Real Final Profit Sample Mean (Control)' = mean(realfinalprofit[assigntreat == 0], na.rm = TRUE),
