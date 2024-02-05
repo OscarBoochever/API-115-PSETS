@@ -12,7 +12,7 @@ library(glue)
 library(ggplot2)
 
 # Read data ####
-data <- read_dta('ReplicationDataGhanaJDE.dta')
+data <- read_dta('data/ReplicationDataGhanaJDE.dta')
 
 # 17. Descriptive statistics table ####
 
@@ -58,12 +58,14 @@ table3_model_trimmed <- felm(realfinalprofit ~ atreatcash + atreatequip | groupn
 tidy(table3_model)
 tidy(table3_model_trimmed)
 
-#trimgroup
-# quad group and wave fixed effects
 
-data <- data %>% mutate(wave_female = wave*female)
 
 # 19. Column 5 Row 3 onward ####
+
+# Create new variable
+data <- data %>% mutate(wave_female = wave*female)
+
+# Set models
 table3_model_col5 <- felm(realfinalprofit ~ atreatcashfemale + atreatequipfemale + atreatcashmale + atreatequipmale | groupnum + wave + wave_female| 0 | sheno, data)
 coef_table <- tidy(table3_model_col5)
 
@@ -91,9 +93,13 @@ coefficient_plot <- ggplot(coef_table, aes(x = estimate, y = term, shape = term,
 print(coefficient_plot)
 
 
-# redo 18 with firm level fixed effects
+## 19b. Implement Fixed Effects ====
+fe_t3_c1 <- felm(realfinalprofit ~ atreatcash + atreatequip | groupnum + wave + sheno | 0 | sheno, data) 
+tidy(fe_t3_c1)
 
-#use ggplot2 
+fe_t3_c1_trimmed <- felm(realfinalprofit ~ atreatcash + atreatequip | groupnum + wave + sheno | 0 | sheno, trimmed) 
+tidy(fe_t3_c1_trimmed)
+
 
 
 
