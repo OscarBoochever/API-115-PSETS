@@ -78,7 +78,7 @@ coef_table <- coef_table %>%
 coefficient_plot <- ggplot(coef_table, aes(x = estimate, y = term, shape = term, color = term)) +
   geom_point(size = 2.2) +
   geom_errorbarh(aes(xmin = estimate - 1.96 * std.error, xmax = estimate + 1.96 * std.error), height = 0) +
-  geom_text(aes(label = paste(round(estimate, 2), " (", round(std.error, 2), ")", sep = "")), vjust = -1.2) + # Add text labels
+  geom_text(aes(label = paste(round(estimate, 3), " (", round(std.error, 3), ")", sep = "")), vjust = -1.2) + # Add text labels
   scale_shape_manual(values = c("Cash Treatment Female" = 17, "Equipment Treatment Female" = 19, "Cash Treatment Male" = 17, "Equipment Treatment Male" = 19)) +
   scale_color_manual(values = c("Cash Treatment Female" = "blue", "Equipment Treatment Female" = "blue", "Cash Treatment Male" = "darkorange", "Equipment Treatment Male" = "darkorange")) +
   labs(x = "Coefficient", y = NULL, title = "Treatment Effects by Gender and Type") +
