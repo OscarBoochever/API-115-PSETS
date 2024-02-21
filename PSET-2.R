@@ -1,12 +1,17 @@
 # Load Libraries
 library(tidyverse)
 library(haven)
+library(zoo)
+library(lmtest)
+library(sandwich)
+library(broom)
+library(lfe)
 
 # Import Data 
 data <- read_dta('data/AK91_1930_39.dta')
 
-# Question 14
 
+# Question 14 ####
 ## Create dummy variables for year of birth and quarter of birth
 data$year_dummies <- as.factor(data$YOB)
 data$quarter_dummies <- as.factor(data$QOB)
@@ -55,3 +60,66 @@ ggplot(figure_1, aes(x = year_quarter, y = mean_educ)) +
         panel.grid.major.x = element_line(color = "grey", linetype = "dashed")) # Modify major grid lines
 
 
+
+
+# Question 15 ####
+## Create a mean education variable by year and quartertabe
+moving_average <- data %>% group_by(quarter_1, quarter_2, quarter_3, quarter_4, YOB, AGEQ) %>%
+  summarise(mean_ed = mean(EDUC)) %>% 
+  ungroup()
+
+## Store the lag and lead two periods around each row 
+moving_average <- moving_average %>% 
+  mutate(
+    lag2 = lag(mean_ed, n = 2, order_by = AGEQ),
+    lag1 = lag(mean_ed, n = 1, order_by = AGEQ), 
+    lead1 = lead(mean_ed, n = 1, order_by = AGEQ), 
+    lead2 = lead(mean_ed, n = 2, order_by = AGEQ)
+  )
+
+## Compute moving average of lags and lead 
+moving_average <- moving_average %>% 
+  mutate(
+    moving_avg = rowMeans(select(moving_average, c(lag2, lag1, lead1, lead2)), na.rm = FALSE),
+    educ_detrend = mean_ed - moving_avg
+  ) %>% 
+  select(AGEQ, moving_avg, educ_detrend)
+
+## Merge the moving average, detrended educ back into the main dataset
+data <- merge(moving_average, data, by = "AGEQ")
+
+## Filter to the first cohort and remove the first two quarters of 1930
+data_table_1 <- data %>% 
+  filter(YOB >= 30, 
+         YOB <= 39,
+         !(YOB == 30 & (quarter_1 | quarter_2)))
+
+
+## Estimate coefficients of detrended quarter-of-birth dummies on detrended total years of education
+education_model_detrended <- lm(educ_detrend ~ quarter_1 + quarter_2 + quarter_3, data = data_table_1)
+
+## View the coefficients
+table_1_coeffs <- tidy(education_model_detrended) %>% mutate(estimate = round(estimate, 3))
+
+
+
+
+# Question 16 ####
+reduced_model <- felm(LWKLYWGE ~ quarter_2 + quarter_3 + quarter_4 | YOB, data = data)
+summary(reduced_model)
+
+
+
+# Question 17 ####
+## OLS
+cohort_one <- data %>% 
+  filter(YOB >= 30, 
+         YOB <= 39)
+
+gsummary(ols_return2ed)
+
+wald_return2ed <- felm(LWKLYWGE ~ 1 | 0 | EDUC ~ quarter_1, data = cohort_one) # this isn't working properly
+summary(wald_return2ed)
+
+
+# Question 18 #### 
