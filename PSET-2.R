@@ -116,10 +116,41 @@ cohort_one <- data %>%
   filter(YOB >= 30, 
          YOB <= 39)
 
-gsummary(ols_return2ed)
+ols_return2ed <- lm(LWKLYWGE ~ EDUC, data = cohort_one)
+summary(ols_return2ed)
 
-wald_return2ed <- felm(LWKLYWGE ~ 1 | 0 | EDUC ~ quarter_1, data = cohort_one) # this isn't working properly
+wald_return2ed <- felm(LWKLYWGE ~ 1 | 0 | (EDUC ~ quarter_1) | 0, data = cohort_one)
 summary(wald_return2ed)
 
 
-# Question 18 #### 
+# Question 18 ####
+# Create the year-quarter interaction factor variable
+cohort_one <- cohort_one %>%
+  mutate(year_quarter = as.factor(YOB + (QOB / 4) - 0.25))
+
+tsls_simple <- felm(LWKLYWGE ~ 1 | YOB | (EDUC ~ year_quarter), data = cohort_one)
+tsls_simple <- felm(LWKLYWGE ~ 1 | YOB | (EDUC ~ year_dummies*quarter_dummies), data = cohort_one) #equivalent
+summary(tsls_simple)
+tsls_simple_table <- tidy(tsls_simple) %>%
+  mutate_at(vars(-term), ~ round(., 4))
+
+  
+tsls_full <- felm(LWKLYWGE ~ RACE + SMSA + MARRIED | 
+                                 YOB + 
+                                 NEWENG +
+                                 MIDATL +
+                                 ENOCENT +
+                                 WNOCENT +
+                                 SOATL +
+                                 ESOCENT +
+                                 WSOCENT +
+                                 MT |
+                    (EDUC ~ year_dummies*quarter_dummies), data = cohort_one) 
+                    
+
+summary(tsls_full)
+tsls_full_table <- tidy(tsls_full) %>%
+  mutate_at(vars(-term), ~ round(., 4))
+
+
+
