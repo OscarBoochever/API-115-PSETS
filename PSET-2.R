@@ -154,3 +154,44 @@ tsls_full_table <- tidy(tsls_full) %>%
 
 
 
+# Question 19 ####
+
+# Step 1: Regress education on the instruments
+education_model_19 <- lm(EDUC ~ year_dummies*quarter_dummies + factor(YOB), data = cohort_one)
+
+# Step 2: Predict education using the model
+cohort_one$predicted_educ <- predict(education_model_19)
+
+# Step 3: Run the TSLS regression using predicted education
+tsls_regression <- lm(LWKLYWGE ~ predicted_educ + factor(YOB), data = cohort_one)
+
+# Step 4: View the results
+summary(tsls_regression)
+
+
+
+
+# Question 20 ####
+cohort_one <- cohort_one %>% 
+  mutate(treatment = EDUC >= 12,
+         instrument = ifelse(quarter_4 == 1, 1, 0))
+
+## a. 
+first_stage <- lm(treatment ~ instrument, cohort_one)
+summary(first_stage)
+
+### alternate method
+table("instrument" = cohort_one$instrument, "treatment" = cohort_one$treatment)
+prop.table(table("instrument" = cohort_one$instrument, "treatment" = cohort_one$treatment), 1)
+
+d_z_1 <- mean(cohort_one$treatment[cohort_one$instrument == 1])
+d_z_0 <- mean(cohort_one$treatment[cohort_one$instrument == 0])
+proportion_compliers <- d_z_1 - d_z_0
+proportion_compliers
+
+## b.
+mean(cohort_one$LWKLYWGE[cohort_one$treatment == FALSE & cohort_one$instrument == 1])
+
+
+## c. 
+mean(cohort_one$LWKLYWGE[cohort_one$treatment == TRUE & cohort_one$instrument == 0])
