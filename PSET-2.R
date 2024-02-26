@@ -195,3 +195,47 @@ mean(cohort_one$LWKLYWGE[cohort_one$treatment == FALSE & cohort_one$instrument =
 
 ## c. 
 mean(cohort_one$LWKLYWGE[cohort_one$treatment == TRUE & cohort_one$instrument == 0])
+
+
+## d. comparing balance of treatment groups
+
+# Create a summary table with mean values, standard deviation, and p-values
+summary_stats <- cohort_one %>% 
+  group_by(treatment) %>% 
+  summarise(
+    mean_wage = mean(LWKLYWGE, na.rm = TRUE),
+    mean_race = mean(RACE, na.rm = TRUE),
+    mean_urban = mean(SMSA, na.rm = TRUE))
+
+# Print the summary table
+print(summary_stats)
+
+
+# Conduct t-tests for continuous variables
+t.test(LWKLYWGE ~ treatment, data = cohort_one)
+t.test(RACE ~ treatment, data = cohort_one)
+t.test(SMSA ~ treatment, data = cohort_one)
+
+t.test(LWKLYWGE ~ instrument, data = cohort_one)
+t.test(RACE ~ instrument, data = cohort_one)
+t.test(SMSA ~ instrument, data = cohort_one)
+
+
+
+# Extract p-values from the tests
+p_value_wage <- t_test_wage$p.value
+p_value_race <- t_test_race$p.value
+p_value_urban <- t_test_urban$p.value
+
+# Create a vector of p-values
+p_values <- c("test", p_value_wage, p_value_race, p_value_urban)
+
+# Bind the p-values row to the summary_stats table
+summary_stats <- rbind(summary_stats, p_values)
+
+# Add row names for p-values
+rownames(summary_stats)[3, ] <- c("t_test_p_value_wage", "t_test_p_value_race", "t_test_p_value_urban", "chi_sq_p_value_married")
+
+# Print the updated summary table
+print(summary_stats)
+
