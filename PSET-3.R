@@ -153,42 +153,49 @@ print(table_data)
 
 # Question 15: RD plot
 # Estimate Bandwidth
-bandwidth <- rdrobust(data_bandwidth$ravens_plus_vocab_standardized, 
-                      data_bandwidth$rkcpe, 
-                      kernel = "triangular", 
-                      p = 1, 
-                      bwselect = "mserd")$bws[1, 1]
+out <- rdrobust(data_bandwidth$ravens_plus_vocab_standardized, 
+              data_bandwidth$rkcpe, 
+              covs = data_bandwidth$female,
+              h = 0.8,
+              p = 1,
+              cluster = data_bandwidth$rkcpe,
+              kernel = "uniform")
+
+summary(out)
 
 # Create RD Plot
-out <- rdplot(data_bandwidth$ravens_plus_vocab_standardized[abs(data_bandwidth$rkcpe) <= bandwidth], 
-              data_bandwidth$rkcpe[abs(data_bandwidth$rkcpe) <= bandwidth], 
-              p = 1,
-              kernel = "triangular")
+out <- rdplot(data_bandwidth$ravens_plus_vocab_standardized, 
+              data_bandwidth$rkcpe, 
+              h = 0.8,
+              nbins = 8,
+              p = 1)
 
 # Summary of Plot
 summary(out)
 
 
-out
 
-
-# Define the bandwidth
-bandwidth <- 0.8
-
-# Filter data within bandwidth
-data_bandwidth <- data_bandwidth[abs(data_bandwidth$rkcpe) < bandwidth, ]
-
-# Create a scatterplot
-ggplot(data_bandwidth, aes(x = rkcpe, y = ravens_plus_vocab_standardized)) +
-  geom_point(alpha = 0.5) +  # Add points
-  geom_smooth(method = "lm", se = TRUE, color = "red") +  # Add regression line
-  labs(x = "KCPE Score", y = "Cognitive Score") +  # Axis labels
-  ggtitle("Regression Discontinuity Plot") +  # Title
-  theme_minimal()  # Minimal theme
+# # Define the bandwidth
+# bandwidth <- 0.8
+# 
+# # Filter data within bandwidth
+# data_bandwidth <- data_bandwidth[abs(data_bandwidth$rkcpe) < bandwidth, ]
+# 
+# # Create a scatterplot
+# ggplot(data_bandwidth, aes(x = rkcpe, y = ravens_plus_vocab_standardized)) +
+#   geom_point(alpha = 0.5) +  # Add points
+#   geom_smooth(method = "lm", se = TRUE, color = "red") +  # Add regression line
+#   labs(x = "KCPE Score", y = "Cognitive Score") +  # Axis labels
+#   ggtitle("Regression Discontinuity Plot") +  # Title
+#   theme_minimal()  # Minimal theme
 
 
 
 
 # Question 16: Manipulation test
-manipulation_test <- rddensity::rddensity(rkcpe ~ passrkcpe, data = data_bandwidth, kernel = "triangular")
-manipulation_plot <- rdplotdensity(manipulation_test)
+# Step 1: Run the manipulation test
+out <- rddensity(data_bandwidth$rkcpe, c = 0)
+
+# Step 2: Plot the density plot
+rdplotdensity(out, X = data_bandwidth$rkcpe)
+
