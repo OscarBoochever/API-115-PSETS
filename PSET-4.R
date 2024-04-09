@@ -17,7 +17,7 @@ data_subset <- data_subset %>%
          treat = is_post * treated_group)
 
 # Run the simple 2x2 DID regression a few ways
-lm(log(suiciderate_jag) ~ unilateral * factor(year) + factor(st), data = data_subset) %>% tidy()
+lm(log(suiciderate_jag) ~ treat, data = data_subset) %>% tidy()
 
 felm(log(suiciderate_jag) ~ unilateral | year + st | 0 | st, data = data_subset) %>% tidy()
 felm(log(suiciderate_jag) ~ treat | year + st | 0 | st, data = data_subset) %>% tidy()
