@@ -4,23 +4,30 @@ library(lmtest)
 library(sandwich)
 library(broom)
 library(lfe)
+library(bacondecomp)
+
 
 data <- read_dta("data/stevenson_wolfers_210.dta")
 
 ## Q13 ####
 # Subset data for states that passed unilateral divorce laws in 1973 and those that never passed
-data_subset <- subset(data, divyear == 1973 | divyear == 2000)
-
-data_subset <- data_subset %>% 
+data <- data %>% 
   mutate(is_post = year >= 1973,
          treated_group = unilateral,
          treat = is_post * treated_group)
 
-# Run the simple 2x2 DID regression a few ways
-lm(log(suiciderate_jag) ~ treat, data = data_subset) %>% tidy()
+# data_subset <- subset(data, divyear == 1973 | divyear == 2000)
 
-felm(log(suiciderate_jag) ~ unilateral | year + st | 0 | st, data = data_subset) %>% tidy()
-felm(log(suiciderate_jag) ~ treat | year + st | 0 | st, data = data_subset) %>% tidy()
+women <- data %>% 
+  filter(sex == 2)
+
+# Run the simple 2x2 DID regression a few ways
+felm(log(suiciderate_jag) ~ is_post + treated_group + treat | 0 | 0| st , data = women) %>% tidy()
+
+# Check the distribution of treated_group within each level of is_post
+table(data$is_post, data$treated_group)
+
+
 
 # # Cluster standard errors at the state level
 # robust_se <- coeftest(model, vcov = vcovHC(model, type = "HC1", cluster = "group"))
@@ -42,10 +49,10 @@ felm(log(suiciderate_jag) ~ treat | year + st | 0 | st, data = data_subset) %>% 
 
 ## Q14 ####
 # Define the year variable relative to 1973
-data_subset <- mutate(data_subset, year_rel1973 = year - 1973)
+data <- mutate(data, year_rel1973 = year - 1973)
 
 # Restrict the data to relative year -5 to 5
-event_study <- filter(data_subset, year_rel1973 >= -5 & year_rel1973 <= 5)
+event_study <- filter(data, year_rel1973 >= -5 & year_rel1973 <= 5)
 
 event_study$year_rel1973 <- as.factor(event_study$year_rel1973)
 
@@ -89,3 +96,21 @@ ggplot(plot_data, aes(x = year, y = coefficient)) +
   scale_x_continuous(breaks = seq(-5, 5, 1)) +
   ggtitle("Event Study of the Effect of Unilateral Divorce Laws on Suicide Rates") +
   theme_minimal()
+
+
+## Q15 ###
+twfe <- felm(log(suiciderate_jag) ~ unilateral | year + st | 0 | st, data = women) 
+twfe %>% tidy
+
+## Q16 ###
+# Decompose the estimate
+decomp <- bacon(twfe, data = women, id_var = st, time_var = year)
+
+# Plot the estimates against the weights
+ggplot(data = decomp, aes(x = estimate, y = weight)) +
+  geom_point() +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "red") +
+  labs(title = "Decomposition of Two-way Fixed-effects Estimate",
+       x = "Estimate",
+       y = "Weight")
+
